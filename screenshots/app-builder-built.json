@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Conversation Map",
+      "hasCanvas": false,
+      "bodyTextLen": 3030,
+      "bodyTextHash": "7b50fc634247f297ab42b0276aaa7eb4c6969b4bc8121816f4b565c191fe8d98",
+      "bodyTextPrefix": "OFFLINE ANALYSIS Conversation Map Paste a transcript. The engine",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Conversation Map",
+      "hasCanvas": false,
+      "bodyTextLen": 2860,
+      "bodyTextHash": "8f7cc31e1614b0930e9f496310f0961f88028e2d9da94e72f41d6f30869906d4",
+      "bodyTextPrefix": "OFFLINE ANALYSIS Conversation Map Paste a transcript. The engine",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
