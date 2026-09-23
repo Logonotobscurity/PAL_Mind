@@ -17,6 +17,8 @@ import {
   P02_SYSTEM_PROMPT,
 } from "./runtime";
 import { P02_RULES } from "./types";
+import { P02Repo } from "./repo";
+import { generateDivergentCandidate } from "./llm";
 
 export interface ProcessResult {
   session: VoiceDevelopmentSession;
@@ -26,33 +28,31 @@ export interface ProcessResult {
   controlWord?: VoiceControlWord;
 }
 
-/**
- * Minimal in-memory service. Swap the Map for a real store (Supabase / Kysely)
- * when integrating with the rest of PAL_Mind.
- */
-const sessions = new Map<string, VoiceDevelopmentSession>();
+async function persist(session: VoiceDevelopmentSession) {
+  await P02Repo.save(session);
+  return session;
+}
 
 export const VoiceDevelopmentService = {
   getSystemPrompt(): string {
     return P02_SYSTEM_PROMPT;
   },
 
-  startSession(workspaceId: string, initialUtterance?: string): VoiceDevelopmentSession {
+  async startSession(
+    workspaceId: string,
+    initialUtterance?: string,
+  ): Promise<VoiceDevelopmentSession> {
     const session = createSession(workspaceId, initialUtterance);
-    sessions.set(session.id, session);
+    await persist(session);
     return session;
   },
 
-  getSession(sessionId: string): VoiceDevelopmentSession | undefined {
-    return sessions.get(sessionId);
+  async getSession(sessionId: string): Promise<VoiceDevelopmentSession | null> {
+    return P02Repo.get(sessionId);
   },
 
-  /**
-   * Process free-form user speech.
-   * Automatically detects control words and advances the state machine.
-   */
-  processUserSpeech(sessionId: string, text: string): ProcessResult {
-    let session = sessions.get(sessionId);
+  async processUserSpeech(sessionId: string, text: string): Promise<ProcessResult> {
+    let session = await P02Repo.get(sessionId);
     if (!session) throw new Error(`Session not found: ${sessionId}`);
 
     const control = detectControlWord(text);
@@ -62,7 +62,6 @@ export const VoiceDevelopmentService = {
       return this.handleControlWord(sessionId, control, text);
     }
 
-    // Normal clarifying turn
     const questionCount = session.questionCount + 1;
     const newState = nextState(session.state, {
       type: "user_speech",
@@ -76,25 +75,29 @@ export const VoiceDevelopmentService = {
       updatedAt: new Date().toISOString(),
     };
 
-    // Placeholder system reply — real LLM call would go here
     let systemReply =
       newState === "VOICE_EXPLORATION_WAIT"
         ? "I have enough to explore. Say ‘explore’ when you want one unexpected approach, or keep talking."
         : "Understood. What else feels important about this?";
 
     session = appendTurn(session, "system", systemReply);
-    sessions.set(sessionId, session);
+    await persist(session);
 
     return { session, systemReply, newState, controlWord: undefined };
   },
 
-  handleControlWord(
+  async handleControlWord(
     sessionId: string,
     word: VoiceControlWord,
     extra?: string,
-  ): ProcessResult {
-    let session = sessions.get(sessionId);
+  ): Promise<ProcessResult> {
+    let session = await P02Repo.get(sessionId);
     if (!session) throw new Error(`Session not found: ${sessionId}`);
+
+    // Ensure the control word itself is on the transcript if it came from a button
+    if (!extra) {
+      session = appendTurn(session, "user", word);
+    }
 
     let systemReply = "";
     let candidate: DivergentCandidate | undefined;
@@ -102,34 +105,21 @@ export const VoiceDevelopmentService = {
     switch (word) {
       case "explore":
       case "another": {
-        // Real implementation would call the LLM with the system prompt
-        // and force a single structured candidate. Here we emit a stub
-        // so the runtime and UI can be exercised immediately.
-        const stub = {
-          field: word === "explore" ? "ecology" : "logistics",
-          mechanism:
-            word === "explore"
-              ? "mutualistic exchange instead of one-way delivery"
-              : "just-in-time staging rather than batch push",
-          summary:
-            word === "explore"
-              ? "Treat the relationship as a mutualistic exchange — both sides must gain something measurable, otherwise the link dies."
-              : "Stage only what is needed for the next visible step; do not pre-load the full plan.",
-        };
-        session = recordCandidate(session, stub);
+        const draft = await generateDivergentCandidate(
+          session,
+          word === "explore" ? "explore" : "another",
+        );
+        session = recordCandidate(session, draft);
         candidate = session.currentCandidate;
         systemReply = candidate
           ? `From ${candidate.field}: ${candidate.summary}\n\nWhat would you change?`
           : "I need more context before I can offer an approach.";
-        session = {
-          ...session,
-          state: "VOICE_USER_REACTION",
-        };
+        session = { ...session, state: "VOICE_USER_REACTION" };
         break;
       }
 
       case "reject": {
-        const reason = extra?.trim() || "No reason given";
+        const reason = (extra ?? "").trim() || "No reason given";
         session = recordRejection(session, reason, extra ?? reason);
         systemReply = `Recorded. Rejected because: “${reason}”. What direction feels more useful now?`;
         break;
@@ -186,7 +176,7 @@ export const VoiceDevelopmentService = {
     }
 
     session = appendTurn(session, "system", systemReply);
-    sessions.set(sessionId, session);
+    await persist(session);
 
     return {
       session,
@@ -197,10 +187,10 @@ export const VoiceDevelopmentService = {
     };
   },
 
-  getWrap(sessionId: string): VoiceWrapResult | undefined {
-    return sessions.get(sessionId)?.wrapResult;
+  async getWrap(sessionId: string): Promise<VoiceWrapResult | undefined> {
+    const s = await P02Repo.get(sessionId);
+    return s?.wrapResult;
   },
 
-  /** Expose rules for UI / tests */
   rules: P02_RULES,
 };
