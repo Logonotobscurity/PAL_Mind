@@ -280,8 +280,8 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
               <Button
                 type="button"
                 variant={listening ? "default" : "secondary"}
-                size="icon"
-                className="shrink-0"
+                size="sm"
+                className="size-11 shrink-0 px-0"
                 disabled={busy || session.state === "VOICE_CLOSED"}
                 onClick={() => (listening ? stopListening() : startListening())}
                 aria-label={listening ? "Stop listening" : "Start microphone"}

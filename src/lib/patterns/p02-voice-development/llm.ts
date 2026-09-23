@@ -29,7 +29,7 @@ export async function generateDivergentCandidate(
       .join("\n");
 
     const body = {
-      model: "grok-2-latest",
+      model: "grok-4.5",
       temperature: 0.7,
       max_tokens: 400,
       messages: [

@@ -57,6 +57,7 @@ export const VoiceDevelopmentService = {
 
     const control = detectControlWord(text);
     session = appendTurn(session, "user", text);
+    await persist(session);
 
     if (control) {
       return this.handleControlWord(sessionId, control, text);

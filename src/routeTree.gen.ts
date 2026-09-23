@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VoiceDevRouteImport } from './routes/voice-dev'
+import { Route as ApiP02RouteImport } from './routes/api/p02'
 import { Route as ApiWebhooksSvixRouteImport } from './routes/api/webhooks/svix'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoiceDevRoute = VoiceDevRouteImport.update({
+  id: '/voice-dev',
+  path: '/voice-dev',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiP02Route = ApiP02RouteImport.update({
+  id: '/api/p02',
+  path: '/api/p02',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebhooksSvixRoute = ApiWebhooksSvixRouteImport.update({
@@ -25,27 +37,35 @@ const ApiWebhooksSvixRoute = ApiWebhooksSvixRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/voice-dev': typeof VoiceDevRoute
+  '/api/p02': typeof ApiP02Route
   '/api/webhooks/svix': typeof ApiWebhooksSvixRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/voice-dev': typeof VoiceDevRoute
+  '/api/p02': typeof ApiP02Route
   '/api/webhooks/svix': typeof ApiWebhooksSvixRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/voice-dev': typeof VoiceDevRoute
+  '/api/p02': typeof ApiP02Route
   '/api/webhooks/svix': typeof ApiWebhooksSvixRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/webhooks/svix'
+  fullPaths: '/' | '/voice-dev' | '/api/p02' | '/api/webhooks/svix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/webhooks/svix'
-  id: '__root__' | '/' | '/api/webhooks/svix'
+  to: '/' | '/voice-dev' | '/api/p02' | '/api/webhooks/svix'
+  id: '__root__' | '/' | '/voice-dev' | '/api/p02' | '/api/webhooks/svix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  VoiceDevRoute: typeof VoiceDevRoute
+  ApiP02Route: typeof ApiP02Route
   ApiWebhooksSvixRoute: typeof ApiWebhooksSvixRoute
 }
 
@@ -56,6 +76,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voice-dev': {
+      id: '/voice-dev'
+      path: '/voice-dev'
+      fullPath: '/voice-dev'
+      preLoaderRoute: typeof VoiceDevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/p02': {
+      id: '/api/p02'
+      path: '/api/p02'
+      fullPath: '/api/p02'
+      preLoaderRoute: typeof ApiP02RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/webhooks/svix': {
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  VoiceDevRoute: VoiceDevRoute,
+  ApiP02Route: ApiP02Route,
   ApiWebhooksSvixRoute: ApiWebhooksSvixRoute,
 }
 export const routeTree = rootRouteImport
