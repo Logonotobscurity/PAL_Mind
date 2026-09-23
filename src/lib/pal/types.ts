@@ -8,7 +8,9 @@ export type NodeKind =
   | "event"
   | "task"
   | "insight"
-  | "workflow";
+  | "workflow"
+  | "exploration"
+  | "candidate";
 
 export type EdgeKind =
   | "knows"
@@ -21,7 +23,10 @@ export type EdgeKind =
   | "follows"
   | "step"
   | "located"
-  | "competes";
+  | "competes"
+  | "from_exploration"
+  | "rejects"
+  | "develops";
 
 export type MapView =
   | "memory"

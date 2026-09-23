@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Mic, MicOff, Square } from "lucide-react";
+import { usePal } from "@/lib/pal/store";
 
 const CONTROLS: { word: VoiceControlWord; label: string }[] = [
   { word: "explore", label: "Explore" },
@@ -52,10 +53,12 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState("");
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [ssaNote, setSsaNote] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
+  const ingestP02Wrap = usePal((s) => s.ingestP02Wrap);
 
   useEffect(() => {
     setSpeechSupported(!!getSpeechRecognition());
@@ -68,6 +71,7 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
   const start = useCallback(async () => {
     setBusy(true);
     setError(null);
+    setSsaNote(null);
     try {
       const res = await fetch("/api/p02", {
         method: "POST",
@@ -113,13 +117,19 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
         setSession(data.session);
         setInput("");
         setInterim("");
+
+        // On wrap: wire into memory graph + SSA
+        if (asControl === "wrap" || data.session?.state === "VOICE_CLOSED") {
+          const result = ingestP02Wrap(data.session);
+          setSsaNote(result.message);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "request failed");
       } finally {
         setBusy(false);
       }
     },
-    [],
+    [ingestP02Wrap],
   );
 
   const stopListening = useCallback(() => {
@@ -202,7 +212,7 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
         </p>
         <h1 className="font-display text-2xl font-medium tracking-tight sm:text-3xl">Voice</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Speak or type. Control words steer exploration. No side effects — only direction.
+          Speak or type. Control words steer exploration. Wrap stores direction in memory after SSA.
         </p>
         {session && (
           <p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -252,6 +262,17 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
                 <p className="mt-1 text-muted-foreground">{session.currentCandidate.summary}</p>
               </div>
             )}
+            {ssaNote && (
+              <div className="rounded-xl border border-border bg-card p-3 text-sm">
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Memory · SSA
+                </div>
+                <p className="mt-1">{ssaNote}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Graph and Work tab updated. ActionProposal only if SSA passed — never auto-executed.
+                </p>
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
 
@@ -280,8 +301,8 @@ export function VoiceDevChat({ compact = false }: { compact?: boolean }) {
               <Button
                 type="button"
                 variant={listening ? "default" : "secondary"}
-                size="sm"
-                className="size-11 shrink-0 px-0"
+                size="icon"
+                className="shrink-0"
                 disabled={busy || session.state === "VOICE_CLOSED"}
                 onClick={() => (listening ? stopListening() : startListening())}
                 aria-label={listening ? "Stop listening" : "Start microphone"}
