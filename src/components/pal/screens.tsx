@@ -1,5 +1,6 @@
 import { CapturePanel } from "@/components/pal/capture";
 import { MindWorkspace } from "@/components/pal/mind-workspace";
+import { VoiceDevChat } from "@/components/pal/voice-dev-chat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,14 @@ export function HomeScreen() {
             </button>
           ))}
         </CardContent>
+      </Card>
+      <Card className="cursor-pointer" onClick={() => setTab("voice")}>
+        <CardHeader>
+          <CardTitle>Voice development</CardTitle>
+          <CardDescription>
+            Talk through an unfinished idea. Mic + control words. Exploration only — no side effects.
+          </CardDescription>
+        </CardHeader>
       </Card>
       <Card>
         <CardHeader>
@@ -114,6 +123,10 @@ export function WorkScreen() {
       })}
     </div>
   );
+}
+
+export function VoiceScreen() {
+  return <VoiceDevChat compact />;
 }
 
 export function SkillsScreen() {

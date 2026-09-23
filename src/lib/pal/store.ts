@@ -4,7 +4,7 @@ import type { MapView, PalConversation, PalEdge, PalNode, PalNote, PalTask } fro
 import { SEED_CONVERSATIONS, SEED_EDGES, SEED_NODES, SEED_TASKS } from "./seed";
 import type { Analysis } from "@/lib/conv-map/engine";
 
-export type Tab = "home" | "memory" | "work" | "skills";
+export type Tab = "home" | "memory" | "work" | "voice" | "skills";
 
 type PalState = {
   tab: Tab;

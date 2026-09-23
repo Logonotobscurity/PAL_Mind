@@ -1,12 +1,13 @@
-import { HomeScreen, MemoryScreen, SkillsScreen, WorkScreen } from "@/components/pal/screens";
+import { HomeScreen, MemoryScreen, SkillsScreen, WorkScreen, VoiceScreen } from "@/components/pal/screens";
 import { usePal, type Tab } from "@/lib/pal/store";
 import { cn } from "@/lib/utils";
-import { CheckSquare, Home, MessageSquare, Puzzle } from "lucide-react";
+import { CheckSquare, Home, MessageSquare, Mic, Puzzle } from "lucide-react";
 
 const TABS: { id: Tab; label: string; icon: typeof Home }[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "memory", label: "Memory", icon: MessageSquare },
   { id: "work", label: "Work", icon: CheckSquare },
+  { id: "voice", label: "Voice", icon: Mic },
   { id: "skills", label: "Skills", icon: Puzzle },
 ];
 
@@ -21,6 +22,7 @@ export function PalShell() {
         {tab === "home" ? <HomeScreen /> : null}
         {tab === "memory" ? <MemoryScreen /> : null}
         {tab === "work" ? <WorkScreen /> : null}
+        {tab === "voice" ? <VoiceScreen /> : null}
         {tab === "skills" ? <SkillsScreen /> : null}
       </div>
       <nav
@@ -30,7 +32,7 @@ export function PalShell() {
         )}
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-4">
+        <ul className="mx-auto grid max-w-lg grid-cols-5">
           {TABS.map((t) => {
             const Icon = t.icon;
             const on = tab === t.id;
